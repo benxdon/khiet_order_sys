@@ -11,12 +11,25 @@ def home():
 def submit():
     order_text = request.form.get("order_text")
     print("Received order text:\n", order_text)
-    
+    name = phone = cake_info = address = delivery_time = None
+    lines = order_text.splitlines()
+    for line in lines: 
+        if "Tên người nhận" in line: 
+            name = line.split(":", 1)[1].strip()
+        elif "Số điện thoại" in line: 
+            phone = line.split(":", 1)[1].strip()
+        elif "Tên bánh" in line: 
+            cake_info = line.split(":", 1)[1].strip()
+        elif "Địa chỉ" in line: 
+            address = line.split(":", 1)[1].strip()
+        elif "Thời điểm" in line: 
+            delivery_time = line.split(":", 1)[1].strip()
+    order_row = [name, phone, cake_info, address, delivery_time]
+    print(order_row)
     return render_template("redir.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
-
 
 '''
 scopes = [
