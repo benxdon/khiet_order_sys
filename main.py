@@ -1,7 +1,62 @@
 import gspread
-import time
+from datetime import datetime
 from google.oauth2.service_account import Credentials
 from flask import Flask, request, render_template
+
+
+scopes = [
+    "https://www.googleapis.com/auth/spreadsheets"
+]
+creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
+client = gspread.authorize(creds)
+
+sheet_id = "1Mpb3XfInCAJ6lo8mYuD2OvEvhTAaiuFi_iQeB8u8Nn4"
+workbook = client.open_by_key(sheet_id)
+sheet_name = datetime.now().strftime("%B")
+try : 
+    sheet = workbook.worksheet(sheet_name)
+except gspread.WorksheetNotFound:
+    sheet = workbook.add_worksheet(title=sheet_name, rows="100", cols="20")
+    # Optionally: add headers to the new sheet
+    sheet.append_row([
+        "Xong", "Giờ giao", "Tên", "IG", "SĐT", "Loại bánh",
+        "Topping", "Số lượng", "Giá lẻ", "Discount", "Freebies", 
+        "Tổng", "Địa chỉ", "Notes"
+    ])
+
+vals = sheet.get_all_values()
+insert_index = len(vals) + 1
+
+print(sheet.title)
+print("Rows used: ", len(sheet.get_all_values()))
+print("Total Rows: ", sheet.row_count)
+def parse_viet_time(time_str):
+    time_str = time_str.lower().strip()
+    
+    try: 
+        parts = time_str.split()
+        time_part = parts[0].strip().split("h")
+        period = parts[1]
+        date_part = parts[2]
+
+        hour = int(time_part[0])
+        minute = int(time_part[1]) if len(time_part[1]) > 0 else 0
+        day, month = map(int, date_part.split("/"))
+
+        if period in ["chiều", "tối", "đêm"] and hour < 12: 
+            hour+=12
+        elif period == "trưa" and hour == 12: 
+            pass
+        elif period == "trưa" and hour < 12: 
+            hour+=12 
+
+        year = datetime.now().year
+        delivery_dt = datetime(year, month, day, hour, minute)
+        return delivery_dt
+
+    except: 
+        print("error time parsing")
+        return None
 
 app = Flask(__name__)
 @app.route("/", methods=["GET"])
@@ -41,7 +96,7 @@ def submit():
             parts = [x.strip() for x in line[1:].split("+")]
             if len(parts) == 3: 
                 cakes_info.append({
-                    "cake": parts[0].capitalize(),
+                    "item": parts[0].capitalize(),
                     "topping": False if parts[1].lower() == "ko" else True,
                     "qty": int(parts[2])
                 })
@@ -56,18 +111,45 @@ def submit():
             address = line.split(":", 1)[1].strip()
         elif "Thời điểm" in line: 
             delivery_time = line.split(":", 1)[1].strip()
+            delivery_dt = parse_viet_time(delivery_time)
         elif "Giảm giá" in line: 
-            discount = int(line.split(":",1)[1].strip()) * 0.1
+            discount = line.split(":",1)[1].strip()
         elif "Freebies" in line:
             freebies = line.split(":", 1)[1].strip()
         elif "Phương thức" in line: 
             method = line.split(":", 1)[1].strip()
         elif "Ghi chú" in line: 
             notes = line.split(":", 1)[1].strip()
-    order_row = [name, phone, cakes_info, address, delivery_time, discount, freebies, method, notes]
+    if delivery_dt is None:
+        delivery_dt = datetime.now()
+    order_row = [name, phone, cakes_info, address, delivery_dt, discount, freebies, method, notes]
     print(order_row)
 
     #parsing data to gg sheet
+
+    for cake in cakes_info:
+        row = [
+            "", #Xong
+            delivery_dt.strftime("%Y-%m-%d %H:%M"),
+            name,
+            "", #IG
+            phone,
+            cake["item"],
+            "Có" if cake["topping"] == True else "Không",
+            cake["qty"],
+            "", #giá lẻ
+            discount,
+            freebies, 
+            "", #tổng
+            address,
+            notes
+        ]
+        print("Appending row:", row)
+        try:
+            sheet.insert_row(row, index=insert_index, value_input_option="USER_ENTERED")
+            insert_index+=1
+        except Exception as e: 
+            print("error appending row:", e)
     return render_template("redir.html")
 
 if __name__ == "__main__":
@@ -87,16 +169,4 @@ template for data entry
 ✧ Freebies: (món gì đó)
 ✧ Phương thức thanh toán: bank/cash
 ✧ Ghi chú: ít ngọt, v.v.
-
-scopes = [
-    "https://www.googleapis.com/auth/spreadsheets"
-]
-creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
-client = gspread.authorize(creds)
-
-sheet_id = "1Mpb3XfInCAJ6lo8mYuD2OvEvhTAaiuFi_iQeB8u8Nn4"
-workbook = client.open_by_key(sheet_id)
-
-sheets = workbook.worksheets()
-print(sheets)
 '''
