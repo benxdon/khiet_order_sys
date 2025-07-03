@@ -3,7 +3,7 @@ from datetime import datetime
 from google.oauth2.service_account import Credentials
 from flask import Flask, request, render_template
 
-
+#init the data sheet
 scopes = [
     "https://www.googleapis.com/auth/spreadsheets"
 ]
@@ -24,12 +24,12 @@ except gspread.WorksheetNotFound:
         "Tổng", "Địa chỉ", "Notes"
     ])
 
-vals = sheet.get_all_values()
-insert_index = len(vals) + 1
 
 print(sheet.title)
 print("Rows used: ", len(sheet.get_all_values()))
 print("Total Rows: ", sheet.row_count)
+
+#helper function to translate time
 def parse_viet_time(time_str):
     time_str = time_str.lower().strip()
     
@@ -58,13 +58,18 @@ def parse_viet_time(time_str):
         print("error time parsing")
         return None
 
+
+#init the web page
 app = Flask(__name__)
 @app.route("/", methods=["GET"])
 def home():
     return render_template("form.html")
 
+#interpreting the data given
 @app.route("/submit", methods=["POST"])
 def submit():
+    vals = sheet.get_all_values()
+    insert_index = len(vals) + 1
     order_text = request.form.get("order_text")
     name = phone = address = delivery_time = freebies = method = notes = ""
     discount = 0.0
