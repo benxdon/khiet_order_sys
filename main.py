@@ -8,7 +8,7 @@ scopes = [
     "https://www.googleapis.com/auth/spreadsheets"
 ]
 creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
-client = gspread.authorize(creds)
+client = gspread.authorize(creds)   
 
 sheet_id = "1Mpb3XfInCAJ6lo8mYuD2OvEvhTAaiuFi_iQeB8u8Nn4"
 workbook = client.open_by_key(sheet_id)
@@ -16,13 +16,8 @@ sheet_name = datetime.now().strftime("%B")
 try : 
     sheet = workbook.worksheet(sheet_name)
 except gspread.WorksheetNotFound:
-    sheet = workbook.add_worksheet(title=sheet_name, rows="100", cols="20")
-    # Optionally: add headers to the new sheet
-    sheet.append_row([
-        "Xong", "Giờ giao", "Tên", "IG", "SĐT", "Loại bánh",
-        "Topping", "Số lượng", "Giá lẻ", "Discount", "Freebies", 
-        "Tổng", "Địa chỉ", "Notes"
-    ])
+    template = workbook.worksheet("template")
+    sheet = template.duplicate(new_sheet_name=sheet_name)
 
 
 #helper functions
@@ -65,7 +60,7 @@ def home():
 @app.route("/submit", methods=["POST"])
 def submit():
     vals = sheet.col_values(3)
-    insert_index = 101 #len(vals) + 1
+    insert_index = len(vals) + 1
     order_text = request.form.get("order_text")
     name = phone = address = delivery_time = freebies = method = notes = ""
     discount = 0.0
@@ -129,7 +124,7 @@ def submit():
     for cake in cakes_info:
         row = [
             "", #Xong
-            delivery_dt.strftime("%Y-%m-%d %H:%M"),
+            delivery_dt.strftime("%Y-%m-%d"),
             name,
             "", #IG
             phone,
