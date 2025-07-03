@@ -1,5 +1,5 @@
 # khiet_order_sys
-# 🧁 Khiet Order Automation
+# 🥐 Khiet Order Automation
 
 A simple Flask app I built to help my friend Khiet manage bakery orders more efficiently. Instead of manually copying details from DMs, this app parses a structured message and logs it directly to Google Sheets. It also prevents overlapping delivery times.
 
