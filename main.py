@@ -25,11 +25,7 @@ except gspread.WorksheetNotFound:
     ])
 
 
-print(sheet.title)
-print("Rows used: ", len(sheet.get_all_values()))
-print("Total Rows: ", sheet.row_count)
-
-#helper function to translate time
+#helper functions
 def parse_viet_time(time_str):
     time_str = time_str.lower().strip()
     
@@ -68,8 +64,8 @@ def home():
 #interpreting the data given
 @app.route("/submit", methods=["POST"])
 def submit():
-    vals = sheet.get_all_values()
-    insert_index = len(vals) + 1
+    vals = sheet.col_values(3)
+    insert_index = 101 #len(vals) + 1
     order_text = request.form.get("order_text")
     name = phone = address = delivery_time = freebies = method = notes = ""
     discount = 0.0
@@ -127,8 +123,6 @@ def submit():
             notes = line.split(":", 1)[1].strip()
     if delivery_dt is None:
         delivery_dt = datetime.now()
-    order_row = [name, phone, cakes_info, address, delivery_dt, discount, freebies, method, notes]
-    print(order_row)
 
     #parsing data to gg sheet
 
@@ -149,9 +143,9 @@ def submit():
             address,
             notes
         ]
-        print("Appending row:", row)
         try:
-            sheet.insert_row(row, index=insert_index, value_input_option="USER_ENTERED")
+            print(insert_index)
+            sheet.update(f"A{insert_index}:N{insert_index}", [row])
             insert_index+=1
         except Exception as e: 
             print("error appending row:", e)
