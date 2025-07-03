@@ -58,7 +58,7 @@ def submit():
         sheet = workbook.worksheet(sheet_name)
     except gspread.WorksheetNotFound:
         template = workbook.worksheet("template")
-    sheet = template.duplicate(new_sheet_name=sheet_name)
+        sheet = template.duplicate(new_sheet_name=sheet_name)
     vals = sheet.col_values(3)
     insert_index = len(vals) + 1
     order_text = request.form.get("order_text")
