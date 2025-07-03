@@ -13,11 +13,6 @@ client = gspread.authorize(creds)
 sheet_id = "1Mpb3XfInCAJ6lo8mYuD2OvEvhTAaiuFi_iQeB8u8Nn4"
 workbook = client.open_by_key(sheet_id)
 sheet_name = datetime.now().strftime("%B")
-try : 
-    sheet = workbook.worksheet(sheet_name)
-except gspread.WorksheetNotFound:
-    template = workbook.worksheet("template")
-    sheet = template.duplicate(new_sheet_name=sheet_name)
 
 
 #helper functions
@@ -59,6 +54,11 @@ def home():
 #interpreting the data given
 @app.route("/submit", methods=["POST"])
 def submit():
+    try : 
+        sheet = workbook.worksheet(sheet_name)
+    except gspread.WorksheetNotFound:
+        template = workbook.worksheet("template")
+    sheet = template.duplicate(new_sheet_name=sheet_name)
     vals = sheet.col_values(3)
     insert_index = len(vals) + 1
     order_text = request.form.get("order_text")
