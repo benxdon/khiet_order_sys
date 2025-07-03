@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                font-family: sans-serif;
+                padding: 40px;
+            }
+            textarea {
+                width: 100%;
+                height: 200px;
+                font-size: 16px;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #f67280;
+            color: white;
+            border: none;
+            cursor: pointer;
+            }
+
+            .note {
+            margin-top: 20px;
+            font-size: 14px;
+            color: gray;
+            }
+        </style> 
+    </head>
+    <body>
+        <h2>Please Paste the bakery's order down below</h2>
+
+        <form method = "POST" action = "/submit">
+            <textarea name = "order_text" placeholder="..."></textarea>
+            <button type="submit">Upload to Google Sheet</button>
+        </form>
+
+    <div class="note">
+        📋 Copy-paste the full customer message above, then click submit.
+    </div>
+    </body>
+</html>
