@@ -1,5 +1,6 @@
 import gspread
 from datetime import datetime
+import os, json
 from google.oauth2.service_account import Credentials
 from flask import Flask, request, render_template
 
@@ -7,7 +8,8 @@ from flask import Flask, request, render_template
 scopes = [
     "https://www.googleapis.com/auth/spreadsheets"
 ]
-creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
+service_account_info = json.loads(os.environ["google_creds"])
+creds = Credentials.from_service_account_info(service_account_info,scopes=scopes)
 client = gspread.authorize(creds)   
 
 sheet_id = "1Mpb3XfInCAJ6lo8mYuD2OvEvhTAaiuFi_iQeB8u8Nn4"
