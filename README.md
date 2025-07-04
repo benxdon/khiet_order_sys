@@ -14,7 +14,7 @@ Hi everyone, this is an application built using flask, html and render to help m
 - Deployment: Render
 # Example input format
 template for data entry
-`✧ Tên người nhận:
+```✧ Tên người nhận:
 ✧ Số điện thoại:
 ✧ Tên bánh + topping + số lượng:
    - mango + ko + 1
@@ -25,4 +25,4 @@ template for data entry
 ✧ Giảm giá: 10 (không ghi %)
 ✧ Freebies: (món gì đó)
 ✧ Phương thức thanh toán: bank/cash
-✧ Ghi chú: ít ngọt, v.v.`
+✧ Ghi chú: ít ngọt, v.v.```
