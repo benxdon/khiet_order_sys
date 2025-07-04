@@ -12,6 +12,7 @@ service_account_info = json.loads(os.environ["google_creds"])
 creds = Credentials.from_service_account_info(service_account_info,scopes=scopes)
 client = gspread.authorize(creds)   
 
+port = int(os.environ.get("PORT",5000))
 sheet_id = "1Mpb3XfInCAJ6lo8mYuD2OvEvhTAaiuFi_iQeB8u8Nn4"
 workbook = client.open_by_key(sheet_id)
 sheet_name = datetime.now().strftime("%B")
@@ -135,7 +136,7 @@ def submit():
     return render_template("redir.html")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True)
 
 '''
 template for data entry
