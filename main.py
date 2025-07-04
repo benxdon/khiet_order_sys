@@ -16,33 +16,13 @@ sheet_name = datetime.now().strftime("%B")
 
 
 #helper functions
-def parse_viet_time(time_str):
-    time_str = time_str.lower().strip()
-    
-    try: 
-        parts = time_str.split()
-        time_part = parts[0].strip().split("h")
-        period = parts[1]
-        date_part = parts[2]
-
-        hour = int(time_part[0])
-        minute = int(time_part[1]) if len(time_part[1]) > 0 else 0
-        day, month = map(int, date_part.split("/"))
-
-        if period in ["chiều", "tối", "đêm"] and hour < 12: 
-            hour+=12
-        elif period == "trưa" and hour == 12: 
-            pass
-        elif period == "trưa" and hour < 12: 
-            hour+=12 
-
-        year = datetime.now().year
-        delivery_dt = datetime(year, month, day, hour, minute)
-        return delivery_dt
-
-    except: 
-        print("error time parsing")
-        return None
+def total_calc(type, topping, discount, qty): 
+    prices = {"custard": 55000, "mango n cheese": 80000, "meat floss": 65000, "matcha": 50000}
+    base = prices[type]
+    if topping:
+        base += 10000
+    total = base * qty * (1 - discount * 0.01)
+    return round(total) 
 
 
 #init the web page
@@ -62,8 +42,10 @@ def submit():
     vals = sheet.col_values(3)
     insert_index = len(vals) + 1
     order_text = request.form.get("order_text")
-    name = phone = address = delivery_time = freebies = method = notes = ""
-    discount = 0.0
+    name = phone = address = deli_date = freebies = notes = IG = ""
+    discount = 0
+    prices = {"custard": 55000, "mango n cheese": 80000, "meat floss": 65000, "matcha": 50000}
+
     
     #handles cake info
     cakes_info = []
@@ -79,7 +61,7 @@ def submit():
                 stuff = [x.strip() for x in item.split("+")]
                 if len(stuff) == 3: 
                     cakes_info.append({
-                        "item": stuff[0].capitalize(),
+                        "item": stuff[0].strip().lower(),
                         "topping": False if stuff[1].lower() == "ko" else True,
                         "qty": int(stuff[2])
                     })   
@@ -92,7 +74,7 @@ def submit():
             parts = [x.strip() for x in line[1:].split("+")]
             if len(parts) == 3: 
                 cakes_info.append({
-                    "item": parts[0].capitalize(),
+                    "item": parts[0].strip().lower(),
                     "topping": False if parts[1].lower() == "ko" else True,
                     "qty": int(parts[2])
                 })
@@ -107,40 +89,44 @@ def submit():
             address = line.split(":", 1)[1].strip()
         elif "Thời điểm" in line: 
             delivery_time = line.split(":", 1)[1].strip()
-            delivery_dt = parse_viet_time(delivery_time)
+            parts = delivery_time.split()
+            date, month = parts[2].split("/") 
+            time = parts[0] + " " + parts[1]
+            year = datetime.now().year
+            deli_date = datetime(year, int(month), int(date)).date()
         elif "Giảm giá" in line: 
             discount = line.split(":",1)[1].strip()
         elif "Freebies" in line:
             freebies = line.split(":", 1)[1].strip()
-        elif "Phương thức" in line: 
-            method = line.split(":", 1)[1].strip()
         elif "Ghi chú" in line: 
             notes = line.split(":", 1)[1].strip()
-    if delivery_dt is None:
-        delivery_dt = datetime.now()
+        elif "IG" in line:
+            IG = line.split(":",1)[1].strip()
+    if deli_date is None:
+        deli_date = datetime.now().date()
 
     #parsing data to gg sheet
-
     for cake in cakes_info:
         row = [
             "", #Xong
-            delivery_dt.strftime("%Y-%m-%d"),
+            deli_date.strftime("%d/%m/%y"),
             name,
-            "", #IG
+            IG, #IG
             phone,
             cake["item"],
             "Có" if cake["topping"] == True else "Không",
             cake["qty"],
-            "", #giá lẻ
+            prices[cake["item"]], #giá lẻ
             discount,
             freebies, 
-            "", #tổng
+            total_calc(cake["item"], cake["topping"], int(discount), cake["qty"]), #tổng
             address,
-            notes
+            time,
+            notes,
+            None #method
         ]
         try:
-            print(insert_index)
-            sheet.update(f"A{insert_index}:N{insert_index}", [row])
+            sheet.update(f"A{insert_index}:P{insert_index}", [row])
             insert_index+=1
         except Exception as e: 
             print("error appending row:", e)
