@@ -21,6 +21,8 @@ sheet_name = datetime.now().strftime("%B")
 #helper functions
 def total_calc(type, topping, discount, qty): 
     prices = {"custard": 55000, "mango n cheese": 80000, "meat floss": 65000, "matcha": 50000}
+    if type not in prices: 
+        return 0
     base = prices[type]
     if topping:
         base += 10000
@@ -119,7 +121,7 @@ def submit():
             cake["item"],
             "Có" if cake["topping"] == True else "Không",
             cake["qty"],
-            prices[cake["item"]], #giá lẻ
+            prices[cake["item"]] if cake["item"] in prices else 0, #giá lẻ
             discount,
             freebies, 
             total_calc(cake["item"], cake["topping"], int(discount), cake["qty"]), #tổng
