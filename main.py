@@ -20,7 +20,7 @@ sheet_name = datetime.now().strftime("%B")
 
 #helper functions
 def total_calc(type, topping, discount, qty): 
-    prices = {"custard": 55000, "mango n cheese": 80000, "meat floss": 65000, "matcha": 50000}
+    prices = {"custard": 55000, "mango": 80000, "meat": 65000, "matcha": 60000, "milo": 60000,}
     if type not in prices: 
         return 0
     base = prices[type]
